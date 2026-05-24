@@ -257,6 +257,8 @@
     .metric {
       padding: 18px;
       min-height: 112px;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .metric span {
@@ -267,8 +269,11 @@
     .metric strong {
       display: block;
       margin-top: 10px;
-      font-size: 30px;
+      font-size: clamp(22px, 2.2vw, 30px);
       line-height: 1;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .metric small {
@@ -739,7 +744,10 @@
                 </form>
                 <form id="expenseForm">
                   <label>Obra<select id="expenseWork" required></select></label>
-                  <label>No de Diario<input id="journalNo" placeholder="Ej. Diario 001"></label>
+                  <div class="row">
+                    <label>No de Diario<input id="journalNo" placeholder="Ej. Diario 001"></label>
+                    <label>Fecha<input type="date" id="expenseDate"></label>
+                  </div>
                   <label>Descripcion del gasto<input id="descG" required></label>
                   <div class="row">
                     <label>Monto<input type="number" id="montoG" min="0" step="0.01" required></label>
@@ -758,7 +766,7 @@
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Obra</th><th>No de Diario</th><th>Tipo</th><th>Descripcion</th><th>Monto</th><th class="actions">Acciones</th></tr></thead>
+                <thead><tr><th>Obra</th><th>No de Diario</th><th>Fecha</th><th>Tipo</th><th>Descripcion</th><th>Monto</th><th class="actions">Acciones</th></tr></thead>
                 <tbody id="tGasto"></tbody>
               </table>
             </div>
@@ -949,6 +957,7 @@
             workId,
             churchId: resolveChurch(item.churchId || item.i) || resolveWorkChurch(workId),
             journal: item.journal || item.diario || item.noDiario || '',
+            date: item.date || item.fecha || '',
             description: item.description || item.d || '',
             amount: Number(item.amount !== undefined && item.amount !== null ? item.amount : (item.a !== undefined && item.a !== null ? item.a : 0)),
             type: item.type || item.t || 'Otros'
@@ -1011,7 +1020,7 @@
       const workIds = works.map(work => work.id);
       return db.gastos.filter(expense => {
         const workMatch = state.filters.workId ? expense.workId === state.filters.workId : workIds.includes(expense.workId);
-        const textMatch = includesText([getWorkName(expense.workId), expense.journal, expense.type, expense.description, String(expense.amount)], state.filters.expenses);
+        const textMatch = includesText([getWorkName(expense.workId), expense.journal, expense.date, expense.type, expense.description, String(expense.amount)], state.filters.expenses);
         return workMatch && textMatch;
       });
     }
@@ -1148,12 +1157,13 @@
         .map(expense => `<tr>
           <td>${getWorkName(expense.workId)}</td>
           <td>${expense.journal || 'Sin dato'}</td>
+          <td>${expense.date || 'Sin fecha'}</td>
           <td>${expense.type}</td>
           <td>${expense.description || 'Sin descripcion'}</td>
           <td>${money(expense.amount)}</td>
           <td class="actions"><button class="btn danger" type="button" data-delete="gastos" data-id="${expense.id}">Eliminar gasto</button></td>
         </tr>`).join('');
-      document.getElementById('tGasto').innerHTML = rows || emptyRow('No hay gastos registrados.', 6);
+      document.getElementById('tGasto').innerHTML = rows || emptyRow('No hay gastos registrados.', 7);
     }
 
     function renderMaterials() {
@@ -1390,6 +1400,7 @@
         workId: work.id,
         churchId: work.churchId,
         journal: document.getElementById('journalNo').value.trim(),
+        date: document.getElementById('expenseDate').value,
         description: document.getElementById('descG').value.trim(),
         amount: Number(document.getElementById('montoG').value || 0),
         type: document.getElementById('tipoG').value
@@ -1481,7 +1492,7 @@
       }, {});
       const scope = state.filters.workId ? getWorkName(state.filters.workId) : (state.filters.workChurch ? getChurchName(state.filters.workChurch) : 'Todas las iglesias y obras');
       const typeRows = Object.keys(byType).map(type => `<tr><td>${type}</td><td>${money(byType[type])}</td></tr>`).join('');
-      const expenseRows = visibleExpenses.map(item => `<tr><td>${getChurchName(item.churchId)}</td><td>${getWorkName(item.workId)}</td><td>${item.journal || 'Sin dato'}</td><td>${item.type}</td><td>${item.description || 'Sin descripcion'}</td><td>${money(item.amount)}</td></tr>`).join('');
+      const expenseRows = visibleExpenses.map(item => `<tr><td>${getChurchName(item.churchId)}</td><td>${getWorkName(item.workId)}</td><td>${item.journal || 'Sin dato'}</td><td>${item.date || 'Sin fecha'}</td><td>${item.type}</td><td>${item.description || 'Sin descripcion'}</td><td>${money(item.amount)}</td></tr>`).join('');
 
       reportWindow.document.write(`
         <!DOCTYPE html>
@@ -1517,7 +1528,7 @@
           <h2>Gastos por tipo</h2>
           <table><thead><tr><th>Tipo</th><th>Total</th></tr></thead><tbody>${typeRows || '<tr><td colspan="2">Sin gastos registrados</td></tr>'}</tbody></table>
           <h2>Detalle de gastos</h2>
-          <table><thead><tr><th>Iglesia</th><th>Obra</th><th>No de Diario</th><th>Tipo</th><th>Descripcion</th><th>Monto</th></tr></thead><tbody>${expenseRows || '<tr><td colspan="6">Sin gastos registrados</td></tr>'}</tbody></table>
+          <table><thead><tr><th>Iglesia</th><th>Obra</th><th>No de Diario</th><th>Fecha</th><th>Tipo</th><th>Descripcion</th><th>Monto</th></tr></thead><tbody>${expenseRows || '<tr><td colspan="7">Sin gastos registrados</td></tr>'}</tbody></table>
           <script>setTimeout(() => window.print(), 300);<\/script>
         </body>
         </html>
