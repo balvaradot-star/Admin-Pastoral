@@ -141,6 +141,15 @@
       gap: 6px;
     }
 
+    .credits {
+      margin-top: 20px;
+      padding: 14px 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.16);
+      color: rgba(255,255,255,0.68);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
     .nav-btn {
       width: 100%;
       min-height: 42px;
@@ -373,6 +382,51 @@
       font: inherit;
     }
 
+    .member-picker {
+      display: grid;
+      gap: 8px;
+    }
+
+    .member-picker-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .member-list {
+      max-height: 240px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px;
+    }
+
+    .member-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .member-option:hover {
+      background: #f3f7f6;
+    }
+
+    .member-option input {
+      width: auto;
+      min-height: auto;
+    }
+
+    .member-count {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     input:focus,
     select:focus {
       outline: 2px solid rgba(35, 100, 90, 0.18);
@@ -499,6 +553,46 @@
       transform: translateY(0);
     }
 
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(29, 37, 44, 0.48);
+      z-index: 20;
+    }
+
+    .modal-backdrop.show {
+      display: grid;
+    }
+
+    .modal {
+      width: min(980px, 100%);
+      max-height: 88vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+      padding: 18px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     @media (max-width: 920px) {
       .app { grid-template-columns: 1fr; }
       aside {
@@ -508,7 +602,7 @@
       }
       .brand { padding-bottom: 12px; margin-bottom: 12px; }
       nav {
-        grid-template-columns: repeat(6, minmax(88px, 1fr));
+        grid-template-columns: repeat(7, minmax(88px, 1fr));
         overflow-x: auto;
       }
       .nav-btn {
@@ -545,6 +639,11 @@
       }
       .brand strong { font-size: 15px; }
       .brand span { font-size: 11px; }
+      .credits {
+        margin-top: 10px;
+        padding-top: 10px;
+        text-align: center;
+      }
       nav {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
@@ -603,6 +702,13 @@
         flex-direction: column;
         gap: 10px;
       }
+      .modal { padding: 12px; }
+      .modal-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .modal-actions { justify-content: stretch; }
+      .modal-actions .btn { width: 100%; }
       h2 { font-size: 17px; }
       .row { gap: 8px; }
       input,
@@ -621,12 +727,21 @@
         font-size: 12px;
       }
       table {
-        min-width: 560px;
+        min-width: 520px;
       }
       th,
       td {
         padding: 9px;
         font-size: 13px;
+      }
+      .actions {
+        white-space: normal;
+        min-width: 130px;
+      }
+      .actions .btn {
+        width: 100%;
+        margin: 3px 0;
+        padding: 0 10px;
       }
     }
 
@@ -639,6 +754,49 @@
         margin-left: -2px;
         margin-right: -2px;
         width: calc(100% + 4px);
+      }
+      table { min-width: 500px; }
+      #orderItems,
+      #orderModalRows {
+        display: grid;
+      }
+      #orderItems tr,
+      #orderModalRows tr {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      #orderItems td,
+      #orderModalRows td {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 8px;
+        border-bottom: 0;
+        padding: 4px 0;
+        font-size: 13px;
+      }
+      #orderItems td:nth-child(1)::before,
+      #orderModalRows td:nth-child(1)::before { content: "Material"; color: var(--muted); font-weight: 700; }
+      #orderItems td:nth-child(2)::before,
+      #orderModalRows td:nth-child(2)::before { content: "Cantidad"; color: var(--muted); font-weight: 700; }
+      #orderItems td:nth-child(3)::before,
+      #orderModalRows td:nth-child(3)::before { content: "Valor"; color: var(--muted); font-weight: 700; }
+      #orderItems td:nth-child(4)::before,
+      #orderModalRows td:nth-child(4)::before { content: "Total"; color: var(--muted); font-weight: 700; }
+      #orderItems input { min-width: 0; }
+      #orderItems {
+        width: 100%;
+      }
+      #orderItems:empty { display: table-row-group; }
+      #orderForm .table-wrap table,
+      #orderModal .table-wrap table {
+        min-width: 0;
+      }
+      #orderForm .table-wrap thead,
+      #orderModal .table-wrap thead {
+        display: none;
       }
     }
 
@@ -694,7 +852,9 @@
         <button class="nav-btn" type="button" data-id="visitas" onclick="show('visitas')"><span class="nav-icon">VI</span><span>Visitas</span></button>
         <button class="nav-btn" type="button" data-id="construccion" onclick="show('construccion')"><span class="nav-icon">OB</span><span>Obra</span></button>
         <button class="nav-btn" type="button" data-id="materiales" onclick="show('materiales')"><span class="nav-icon">MA</span><span>Materiales</span></button>
+        <button class="nav-btn" type="button" data-id="grupos" onclick="show('grupos')"><span class="nav-icon">GP</span><span>Grupos</span></button>
       </nav>
+      <div class="credits">Disenado por<br><strong>Bladimir Alvarado</strong></div>
     </aside>
 
     <main>
@@ -927,11 +1087,112 @@
             </div>
           </div>
         </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-head">
+            <h2>Pedidos trimestrales</h2>
+            <div class="inline-actions">
+              <button class="btn secondary" type="button" id="loadOrderBtn">Cargar pedido</button>
+              <button class="btn secondary" type="button" id="printOrderBtn">Imprimir pedido PDF</button>
+            </div>
+          </div>
+          <form id="orderForm">
+            <div class="row">
+              <label>Iglesia<select id="orderChurch" required></select></label>
+              <label>Trimestre<select id="orderQuarter"><option>1 Trimestre</option><option>2 Trimestre</option><option>3 Trimestre</option><option>4 Trimestre</option></select></label>
+            </div>
+            <div class="row">
+              <label>Pastor<input id="orderPastor" placeholder="Nombre del pastor"></label>
+              <label>Telefono<input id="orderPhone" placeholder="Telefono"></label>
+            </div>
+            <div class="row">
+              <label>Asociacion<input id="orderAssociation" placeholder="Asociacion"></label>
+              <label>Distrito<input id="orderDistrict" placeholder="Distrito"></label>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Material</th><th>Cantidad</th><th>Valor</th><th>Total</th></tr></thead>
+                <tbody id="orderItems"></tbody>
+              </table>
+            </div>
+            <div class="inline-actions">
+              <button class="btn" type="submit">Guardar pedido</button>
+              <strong id="orderTotal" style="align-self:center;">Total: $0</strong>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="grupos" class="section" data-title="Grupos pequenos" data-subtitle="Crea grupos pequenos, asigna lideres, dias de reunion y miembros.">
+        <div class="metrics">
+          <div class="metric"><span>Grupos pequenos</span><strong id="groupCount">0</strong><small>Registrados</small></div>
+          <div class="metric"><span>Miembros asignados</span><strong id="groupMemberCount">0</strong><small>En grupos</small></div>
+          <div class="metric"><span>Lideres</span><strong id="leaderCount">0</strong><small>Activos</small></div>
+        </div>
+
+        <div class="grid">
+          <div class="panel">
+            <div class="panel-head"><h2>Nuevo grupo</h2></div>
+            <form id="groupForm">
+              <label>Nombre del grupo<input id="groupName" required></label>
+              <label>Iglesia<select id="groupChurch" required></select></label>
+              <label>Lider<select id="groupLeader"></select></label>
+              <div class="row">
+                <label>Dia de reunion<select id="groupDay"><option>Lunes</option><option>Martes</option><option>Miercoles</option><option>Jueves</option><option>Viernes</option><option>Sabado</option><option>Domingo</option></select></label>
+                <label>Hora<input type="time" id="groupTime"></label>
+              </div>
+              <div class="member-picker">
+                <label>Buscar miembros<input id="groupMemberSearch" placeholder="Escribe para filtrar miembros"></label>
+                <div class="member-picker-tools">
+                  <button class="btn secondary" type="button" id="selectVisibleMembers">Seleccionar visibles</button>
+                  <button class="btn secondary" type="button" id="clearGroupMembers">Limpiar seleccion</button>
+                  <span class="member-count" id="groupMemberCountHint">0 seleccionados</span>
+                </div>
+                <div class="member-list" id="groupMembers"></div>
+              </div>
+              <button class="btn" type="submit">Guardar grupo</button>
+            </form>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Listado de grupos</h2>
+              <input id="groupSearch" placeholder="Buscar grupo">
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Grupo</th><th>Iglesia</th><th>Lider</th><th>Reunion</th><th>Miembros</th><th class="actions">Acciones</th></tr></thead>
+                <tbody id="tGroups"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal-backdrop" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2 id="orderModalTitle">Detalle del pedido</h2>
+          <p class="subtitle" id="orderModalSubtitle"></p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" id="modalPrintOrderBtn">Imprimir PDF</button>
+          <button class="btn danger" type="button" id="modalCloseBtn">Cerrar</button>
+        </div>
+      </div>
+      <div id="orderModalMeta" class="metrics"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Material</th><th>Cantidad</th><th>Valor</th><th>Total</th></tr></thead>
+          <tbody id="orderModalRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script>
     const STORAGE_KEY = 'pDB';
@@ -939,6 +1200,38 @@
     const USERS_KEY = 'pastoralUsers';
     const LOGIN_USER = 'admin';
     const LOGIN_PASS = 'pastoral2026';
+    const ORDER_TEMPLATE = [
+      ['Guia adulto ALUMNO', 7300],
+      ['Guia adulto ALUMNO EN INGLES', 7900],
+      ['Guia adulto ALUMNO LETRA GIGANTE', 28900],
+      ['Guia adulto MAESTRO', 28900],
+      ['Guia adulto MAESTRO EN INGLES', 22100],
+      ['Libro comentario 3 EN 1', 47900],
+      ['GUIA DE BEBES', 0],
+      ['Guia de CUNA', 27800],
+      ['Guia de JARDIN DE INFANTES', 19900],
+      ['Guia de PRIMARIOS', 20900],
+      ['Guia de MENORES', 21700],
+      ['Guia de ADOLESCENTE - FE REAL', 23300],
+      ['Guia de JOVENES', 19700],
+      ['PROGRAMA DE BEBES', 28000],
+      ['Programa de CUNA', 29700],
+      ['Programa de JARDIN DE INFANTES', 29700],
+      ['Programa de PRIMARIOS', 29700],
+      ['Programa de MENORES', 31300],
+      ['Programa de ADOLESCENTE - FE REAL', 36900],
+      ['Programa de JOVENES', 35900],
+      ['Programa de ESCUELA SABATICA', 15200],
+      ['Revista AVANZAD', 9600],
+      ['Revista PRIORIDADES', 3200],
+      ['Nuevo horizonte (Rumbo)', 0],
+      ['Mision adultos', 0],
+      ['Mision ninos', 0],
+      ['Materiales anuales (solo para primer trimestre)', 0],
+      ['Momento infantil alumno', 50900],
+      ['Momento infantil maestro', 36900],
+      ['Revista ANCIANO', 0]
+    ];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -949,10 +1242,13 @@
         visits: '',
         expenses: '',
         materials: '',
+        groups: '',
         materialChurch: '',
         workChurch: '',
         workId: ''
-      }
+      },
+      selectedOrderId: '',
+      selectedGroupMembers: []
     };
 
     let storedDb = {};
@@ -1084,10 +1380,34 @@
         materiales: (raw.materiales || []).map((item, index) => ({
           id: item.id || cryptoId('ma', index),
           churchId: resolveChurch(item.churchId || item.i),
+          orderId: item.orderId || '',
           name: item.name || item.material || item.n || '',
           amount: Number(item.amount !== undefined && item.amount !== null ? item.amount : (item.valor !== undefined && item.valor !== null ? item.valor : 0)),
           deposit: Number(item.deposit !== undefined && item.deposit !== null ? item.deposit : (item.abono !== undefined && item.abono !== null ? item.abono : 0))
         })).filter(item => item.name || item.amount || item.deposit),
+        pedidos: (raw.pedidos || []).map((item, index) => ({
+          id: item.id || cryptoId('pe', index),
+          churchId: resolveChurch(item.churchId || item.i),
+          quarter: item.quarter || item.trimestre || '1 Trimestre',
+          pastor: item.pastor || '',
+          phone: item.phone || item.telefono || '',
+          association: item.association || item.asociacion || '',
+          district: item.district || item.distrito || '',
+          items: (item.items || []).map(orderItem => ({
+            name: orderItem.name || orderItem.material || '',
+            qty: Number(orderItem.qty || orderItem.cantidad || 0),
+            price: Number(orderItem.price || orderItem.valor || 0)
+          })).filter(orderItem => orderItem.name)
+        })).filter(item => item.churchId),
+        grupos: (raw.grupos || []).map((item, index) => ({
+          id: item.id || cryptoId('gp', index),
+          name: item.name || item.nombre || '',
+          churchId: resolveChurch(item.churchId || item.i),
+          leaderId: item.leaderId || item.liderId || '',
+          day: item.day || item.dia || 'Sabado',
+          time: item.time || item.hora || '',
+          memberIds: item.memberIds || item.miembros || []
+        })).filter(item => item.name),
         budget: Number(raw.budget || 0)
       };
     }
@@ -1127,6 +1447,11 @@
     function getWorkName(id) {
       const work = db.obras.find(item => item.id === id);
       return work ? work.name : 'Sin obra';
+    }
+
+    function getMemberName(id) {
+      const member = db.miembros.find(item => item.id === id);
+      return member ? member.name : 'Sin asignar';
     }
 
     function getVisibleWorks() {
@@ -1173,9 +1498,16 @@
         db.miembros = db.miembros.filter(item => item.churchId !== id);
         db.visitas = db.visitas.filter(item => item.churchId !== id);
         db.materiales = db.materiales.filter(item => item.churchId !== id);
+        db.grupos = db.grupos.filter(item => item.churchId !== id);
         const deletedWorks = db.obras.filter(item => item.churchId === id).map(item => item.id);
         db.obras = db.obras.filter(item => item.churchId !== id);
         db.gastos = db.gastos.filter(item => !deletedWorks.includes(item.workId));
+      }
+      if (collection === 'miembros') {
+        db.grupos.forEach(group => {
+          if (group.leaderId === id) group.leaderId = '';
+          group.memberIds = (group.memberIds || []).filter(memberId => memberId !== id);
+        });
       }
       if (collection === 'obras') {
         db.gastos = db.gastos.filter(item => item.workId !== id);
@@ -1190,6 +1522,7 @@
       renderVisits();
       renderExpenses();
       renderMaterials();
+      renderGroups();
       renderDashboard();
     }
 
@@ -1205,6 +1538,8 @@
       document.getElementById('mI').innerHTML = options;
       document.getElementById('vI').innerHTML = options;
       document.getElementById('matChurch').innerHTML = options;
+      document.getElementById('orderChurch').innerHTML = options;
+      document.getElementById('groupChurch').innerHTML = options;
       document.getElementById('materialChurchFilter').innerHTML = filterOptions;
       document.getElementById('materialChurchFilter').value = state.filters.materialChurch;
       document.getElementById('obraChurchFilter').innerHTML = filterOptions;
@@ -1216,11 +1551,32 @@
       document.getElementById('mI').disabled = !db.iglesias.length;
       document.getElementById('vI').disabled = !db.iglesias.length;
       document.getElementById('matChurch').disabled = !db.iglesias.length;
+      document.getElementById('orderChurch').disabled = !db.iglesias.length;
+      document.getElementById('groupChurch').disabled = !db.iglesias.length;
+      renderGroupMemberOptions();
       document.getElementById('materialChurchFilter').disabled = !db.iglesias.length;
       document.getElementById('obraChurchFilter').disabled = !db.iglesias.length;
       document.getElementById('obraFilter').disabled = !visibleWorks.length;
       document.getElementById('workChurch').disabled = !db.iglesias.length;
       document.getElementById('expenseWork').disabled = !visibleWorks.length;
+    }
+
+    function renderGroupMemberOptions() {
+      const churchId = document.getElementById('groupChurch').value;
+      const search = (document.getElementById('groupMemberSearch')?.value || '').trim().toLowerCase();
+      const churchMembers = db.miembros.filter(member => member.churchId === churchId);
+      const visibleMembers = churchMembers.filter(member => member.name.toLowerCase().includes(search));
+      const memberOptions = churchMembers.map(member => `<option value="${member.id}">${member.name}</option>`).join('');
+      state.selectedGroupMembers = state.selectedGroupMembers.filter(id => churchMembers.some(member => member.id === id));
+      document.getElementById('groupLeader').innerHTML = `<option value="">Sin lider</option>${memberOptions}`;
+      document.getElementById('groupLeader').disabled = !churchMembers.length;
+      document.getElementById('groupMembers').innerHTML = visibleMembers.map(member => `
+        <label class="member-option">
+          <input type="checkbox" value="${member.id}" data-group-member ${state.selectedGroupMembers.includes(member.id) ? 'checked' : ''}>
+          <span>${member.name}</span>
+        </label>
+      `).join('') || `<div class="empty">No hay miembros disponibles para esta iglesia.</div>`;
+      document.getElementById('groupMemberCountHint').textContent = `${state.selectedGroupMembers.length} seleccionados`;
     }
 
     function renderChurches() {
@@ -1249,6 +1605,32 @@
           <td class="actions"><button class="btn danger" type="button" data-delete="miembros" data-id="${member.id}">Eliminar</button></td>
         </tr>`).join('');
       document.getElementById('tM').innerHTML = rows || emptyRow('No hay miembros registrados.', 5);
+    }
+
+    function renderGroups() {
+      const assignedMembers = new Set(db.grupos.flatMap(group => group.memberIds || []));
+      const leaders = new Set(db.grupos.map(group => group.leaderId).filter(Boolean));
+
+      document.getElementById('groupCount').textContent = db.grupos.length;
+      document.getElementById('groupMemberCount').textContent = assignedMembers.size;
+      document.getElementById('leaderCount').textContent = leaders.size;
+
+      const rows = db.grupos
+        .filter(group => includesText([group.name, getChurchName(group.churchId), getMemberName(group.leaderId), group.day, group.time], state.filters.groups))
+        .map(group => {
+          const members = (group.memberIds || []).map(getMemberName).join(', ') || 'Sin miembros';
+          const meeting = `${group.day}${group.time ? ' - ' + group.time : ''}`;
+          return `<tr>
+            <td>${group.name}</td>
+            <td>${getChurchName(group.churchId)}</td>
+            <td>${getMemberName(group.leaderId)}</td>
+            <td>${meeting}</td>
+            <td>${members}</td>
+            <td class="actions"><button class="btn danger" type="button" data-delete="grupos" data-id="${group.id}">Eliminar</button></td>
+          </tr>`;
+        }).join('');
+
+      document.getElementById('tGroups').innerHTML = rows || emptyRow('No hay grupos pequenos registrados.', 6);
     }
 
     function renderVisits() {
@@ -1306,6 +1688,7 @@
       const rows = visibleMaterials
         .map(material => {
           const itemBalance = Number(material.amount || 0) - Number(material.deposit || 0);
+          const orderButton = material.orderId ? `<button class="btn secondary" type="button" data-view-order="${material.orderId}">Ver pedido</button>` : '';
           return `<tr>
             <td>${getChurchName(material.churchId)}</td>
             <td>${material.name}</td>
@@ -1313,6 +1696,7 @@
             <td>${money(material.deposit)}</td>
             <td>${money(itemBalance)}</td>
             <td class="actions">
+              ${orderButton}
               <button class="btn secondary" type="button" data-pay-material="${material.id}">Abonar</button>
               <button class="btn danger" type="button" data-delete="materiales" data-id="${material.id}">Eliminar</button>
             </td>
@@ -1320,6 +1704,96 @@
         }).join('');
 
       document.getElementById('tMateriales').innerHTML = rows || emptyRow('No hay materiales registrados.', 6);
+      renderOrderItems();
+    }
+
+    function getCurrentOrder() {
+      const churchId = document.getElementById('orderChurch').value;
+      const quarter = document.getElementById('orderQuarter').value;
+      return db.pedidos.find(order => order.churchId === churchId && order.quarter === quarter);
+    }
+
+    function getOrderFormItems() {
+      return Array.from(document.querySelectorAll('#orderItems tr')).map(row => ({
+        name: row.dataset.name,
+        qty: Number(row.querySelector('[data-order-qty]').value || 0),
+        price: Number(row.querySelector('[data-order-price]').value || 0)
+      }));
+    }
+
+    function renderOrderItems(order) {
+      const activeOrder = order || getCurrentOrder();
+      const items = activeOrder && activeOrder.items.length
+        ? activeOrder.items
+        : ORDER_TEMPLATE.map(item => ({ name: item[0], qty: 0, price: item[1] }));
+
+      if (activeOrder) {
+        document.getElementById('orderPastor').value = activeOrder.pastor || '';
+        document.getElementById('orderPhone').value = activeOrder.phone || '';
+        document.getElementById('orderAssociation').value = activeOrder.association || '';
+        document.getElementById('orderDistrict').value = activeOrder.district || '';
+      } else {
+        document.getElementById('orderPastor').value = '';
+        document.getElementById('orderPhone').value = '';
+        document.getElementById('orderAssociation').value = '';
+        document.getElementById('orderDistrict').value = '';
+      }
+
+      document.getElementById('orderItems').innerHTML = items.map(item => {
+        const qty = Number(item.qty || 0);
+        const price = Number(item.price || 0);
+        return `<tr data-name="${item.name}">
+          <td>${item.name}</td>
+          <td><input type="number" min="0" step="1" value="${qty}" data-order-qty></td>
+          <td><input type="number" min="0" step="100" value="${price}" data-order-price></td>
+          <td data-order-line>${money(qty * price)}</td>
+        </tr>`;
+      }).join('');
+      updateOrderTotal();
+    }
+
+    function updateOrderTotal() {
+      let total = 0;
+      document.querySelectorAll('#orderItems tr').forEach(row => {
+        const qty = Number(row.querySelector('[data-order-qty]').value || 0);
+        const price = Number(row.querySelector('[data-order-price]').value || 0);
+        const lineTotal = qty * price;
+        total += lineTotal;
+        row.querySelector('[data-order-line]').textContent = money(lineTotal);
+      });
+      document.getElementById('orderTotal').textContent = `Total: ${money(total)}`;
+      return total;
+    }
+
+    function orderTotal(order) {
+      return (order.items || []).reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
+    }
+
+    function showOrderModal(orderId) {
+      const order = db.pedidos.find(item => item.id === orderId);
+      if (!order) {
+        toast('No se encontro el pedido.');
+        return;
+      }
+
+      state.selectedOrderId = order.id;
+      document.getElementById('orderModalTitle').textContent = `Pedido ${order.quarter}`;
+      document.getElementById('orderModalSubtitle').textContent = `${getChurchName(order.churchId)} | Total ${money(orderTotal(order))}`;
+      document.getElementById('orderModalMeta').innerHTML = `
+        <div class="metric"><span>Iglesia</span><strong>${getChurchName(order.churchId)}</strong><small>${order.quarter}</small></div>
+        <div class="metric"><span>Pastor</span><strong>${order.pastor || 'Sin dato'}</strong><small>${order.phone || 'Sin telefono'}</small></div>
+        <div class="metric"><span>Asociacion</span><strong>${order.association || 'Sin dato'}</strong><small>${order.district || 'Sin distrito'}</small></div>
+      `;
+      document.getElementById('orderModalRows').innerHTML = (order.items || [])
+        .filter(item => item.qty || item.price)
+        .map(item => `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(Number(item.qty || 0) * Number(item.price || 0))}</td></tr>`)
+        .join('') || emptyRow('Sin materiales solicitados.', 4);
+      document.getElementById('orderModal').classList.add('show');
+    }
+
+    function closeOrderModal() {
+      document.getElementById('orderModal').classList.remove('show');
+      state.selectedOrderId = '';
     }
 
     function renderDashboard() {
@@ -1541,7 +2015,81 @@
       save('Material registrado.');
     });
 
+    document.getElementById('orderForm').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!hasChurches()) return;
+      const churchId = document.getElementById('orderChurch').value;
+      const quarter = document.getElementById('orderQuarter').value;
+      const items = getOrderFormItems();
+      let order = db.pedidos.find(item => item.churchId === churchId && item.quarter === quarter);
+
+      if (!order) {
+        order = { id: cryptoId('pe', db.pedidos.length), churchId, quarter, items: [] };
+        db.pedidos.push(order);
+      }
+
+      order.pastor = document.getElementById('orderPastor').value.trim();
+      order.phone = document.getElementById('orderPhone').value.trim();
+      order.association = document.getElementById('orderAssociation').value.trim();
+      order.district = document.getElementById('orderDistrict').value.trim();
+      order.items = items;
+
+      const orderTotal = items.reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
+      let materialDebt = db.materiales.find(item => item.orderId === order.id);
+
+      if (!materialDebt) {
+        materialDebt = {
+          id: cryptoId('ma', db.materiales.length),
+          churchId,
+          orderId: order.id,
+          name: `Pedido ${quarter}`,
+          amount: 0,
+          deposit: 0
+        };
+        db.materiales.push(materialDebt);
+      }
+
+      materialDebt.churchId = churchId;
+      materialDebt.name = `Pedido ${quarter}`;
+      materialDebt.amount = orderTotal;
+      if (Number(materialDebt.deposit || 0) > orderTotal) {
+        materialDebt.deposit = orderTotal;
+      }
+
+      state.filters.materialChurch = churchId;
+      state.filters.materials = '';
+      document.getElementById('materialChurchFilter').value = churchId;
+      document.getElementById('materialSearch').value = '';
+      event.currentTarget.reset();
+      renderOrderItems();
+      save('Pedido guardado y reflejado en materiales.');
+    });
+
+    document.getElementById('groupForm').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!hasChurches()) return;
+      db.grupos.push({
+        id: cryptoId('gp', db.grupos.length),
+        name: document.getElementById('groupName').value.trim(),
+        churchId: document.getElementById('groupChurch').value,
+        leaderId: document.getElementById('groupLeader').value,
+        day: document.getElementById('groupDay').value,
+        time: document.getElementById('groupTime').value,
+        memberIds: state.selectedGroupMembers.slice()
+      });
+      state.selectedGroupMembers = [];
+      document.getElementById('groupMemberSearch').value = '';
+      event.currentTarget.reset();
+      save('Grupo pequeno guardado.');
+    });
+
     document.body.addEventListener('click', event => {
+      const viewOrderBtn = event.target.closest('[data-view-order]');
+      if (viewOrderBtn) {
+        showOrderModal(viewOrderBtn.dataset.viewOrder);
+        return;
+      }
+
       const payBtn = event.target.closest('[data-pay-material]');
       if (payBtn) {
         const material = db.materiales.find(item => item.id === payBtn.dataset.payMaterial);
@@ -1569,7 +2117,7 @@
 
       const btn = event.target.closest('[data-delete]');
       if (!btn) return;
-      const labels = { iglesias: 'iglesia', miembros: 'miembro', visitas: 'visita', gastos: 'gasto', materiales: 'material' };
+      const labels = { iglesias: 'iglesia', miembros: 'miembro', visitas: 'visita', gastos: 'gasto', materiales: 'material', grupos: 'grupo pequeno' };
       if (confirm(`Eliminar este ${labels[btn.dataset.delete]}?`)) {
         deleteItem(btn.dataset.delete, btn.dataset.id, 'Registro eliminado.');
       }
@@ -1580,7 +2128,40 @@
     document.getElementById('visitSearch').addEventListener('input', event => { state.filters.visits = event.target.value; renderVisits(); });
     document.getElementById('expenseSearch').addEventListener('input', event => { state.filters.expenses = event.target.value; renderExpenses(); });
     document.getElementById('materialSearch').addEventListener('input', event => { state.filters.materials = event.target.value; renderMaterials(); });
+    document.getElementById('groupSearch').addEventListener('input', event => { state.filters.groups = event.target.value; renderGroups(); });
+    document.getElementById('groupChurch').addEventListener('change', () => {
+      state.selectedGroupMembers = [];
+      document.getElementById('groupMemberSearch').value = '';
+      renderGroupMemberOptions();
+    });
+    document.getElementById('groupMemberSearch').addEventListener('input', renderGroupMemberOptions);
+    document.getElementById('groupMembers').addEventListener('change', event => {
+      if (!event.target.matches('[data-group-member]')) return;
+      if (event.target.checked) {
+        if (!state.selectedGroupMembers.includes(event.target.value)) state.selectedGroupMembers.push(event.target.value);
+      } else {
+        state.selectedGroupMembers = state.selectedGroupMembers.filter(id => id !== event.target.value);
+      }
+      document.getElementById('groupMemberCountHint').textContent = `${state.selectedGroupMembers.length} seleccionados`;
+    });
+    document.getElementById('selectVisibleMembers').addEventListener('click', () => {
+      document.querySelectorAll('[data-group-member]').forEach(input => {
+        input.checked = true;
+        if (!state.selectedGroupMembers.includes(input.value)) state.selectedGroupMembers.push(input.value);
+      });
+      document.getElementById('groupMemberCountHint').textContent = `${state.selectedGroupMembers.length} seleccionados`;
+    });
+    document.getElementById('clearGroupMembers').addEventListener('click', () => {
+      state.selectedGroupMembers = [];
+      renderGroupMemberOptions();
+    });
     document.getElementById('materialChurchFilter').addEventListener('change', event => { state.filters.materialChurch = event.target.value; renderMaterials(); });
+    document.getElementById('orderChurch').addEventListener('change', () => renderOrderItems());
+    document.getElementById('orderQuarter').addEventListener('change', () => renderOrderItems());
+    document.getElementById('loadOrderBtn').addEventListener('click', () => renderOrderItems());
+    document.getElementById('orderItems').addEventListener('input', event => {
+      if (event.target.matches('[data-order-qty], [data-order-price]')) updateOrderTotal();
+    });
     document.getElementById('obraChurchFilter').addEventListener('change', event => {
       state.filters.workChurch = event.target.value;
       state.filters.workId = '';
@@ -1713,6 +2294,79 @@
     }
 
     document.getElementById('materialPdfBtn').addEventListener('click', exportMaterialReportPdf);
+
+    function printQuarterOrder(orderOverride) {
+      if (!hasChurches()) return;
+      const reportWindow = window.open('', '_blank');
+      if (!reportWindow) {
+        toast('Permite ventanas emergentes para imprimir el pedido.');
+        return;
+      }
+
+      const churchId = orderOverride ? orderOverride.churchId : document.getElementById('orderChurch').value;
+      const quarter = orderOverride ? orderOverride.quarter : document.getElementById('orderQuarter').value;
+      const pastor = orderOverride ? orderOverride.pastor : document.getElementById('orderPastor').value.trim();
+      const phone = orderOverride ? orderOverride.phone : document.getElementById('orderPhone').value.trim();
+      const association = orderOverride ? orderOverride.association : document.getElementById('orderAssociation').value.trim();
+      const district = orderOverride ? orderOverride.district : document.getElementById('orderDistrict').value.trim();
+      const items = orderOverride ? orderOverride.items : getOrderFormItems();
+      const rows = items
+        .filter(item => item.qty || item.price)
+        .map(item => `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(item.qty * item.price)}</td></tr>`)
+        .join('');
+      const total = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+
+      reportWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>Pedido trimestral</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #1d252c; margin: 32px; }
+            h1 { margin: 0 0 6px; font-size: 25px; }
+            .muted { color: #68747f; margin: 0 0 18px; }
+            .meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 18px; margin: 18px 0; }
+            .meta div { border-bottom: 1px solid #dce3e7; padding-bottom: 6px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+            th, td { border: 1px solid #dce3e7; padding: 8px; text-align: left; font-size: 13px; }
+            th { background: #f5f7f8; }
+            .total { text-align: right; font-size: 18px; margin-top: 16px; font-weight: 700; }
+            @media print { button { display: none; } body { margin: 16mm; } }
+          </style>
+        </head>
+        <body>
+          <button onclick="window.print()" style="float:right;padding:10px 14px;">Guardar como PDF</button>
+          <h1>Pedido trimestral de materiales</h1>
+          <p class="muted">${quarter} | Generado el ${new Date().toLocaleDateString('es-CO')}</p>
+          <div class="meta">
+            <div><strong>Iglesia:</strong> ${getChurchName(churchId)}</div>
+            <div><strong>Pastor:</strong> ${pastor || 'Sin dato'}</div>
+            <div><strong>Asociacion:</strong> ${association || 'Sin dato'}</div>
+            <div><strong>Distrito:</strong> ${district || 'Sin dato'}</div>
+            <div><strong>Telefono:</strong> ${phone || 'Sin dato'}</div>
+          </div>
+          <table>
+            <thead><tr><th>Material</th><th>Cantidad</th><th>Valor</th><th>Total</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="4">Sin materiales solicitados</td></tr>'}</tbody>
+          </table>
+          <div class="total">Total: ${money(total)}</div>
+          <script>setTimeout(() => window.print(), 300);<\/script>
+        </body>
+        </html>
+      `);
+      reportWindow.document.close();
+    }
+
+    document.getElementById('printOrderBtn').addEventListener('click', printQuarterOrder);
+    document.getElementById('modalPrintOrderBtn').addEventListener('click', () => {
+      const order = db.pedidos.find(item => item.id === state.selectedOrderId);
+      if (order) printQuarterOrder(order);
+    });
+    document.getElementById('modalCloseBtn').addEventListener('click', closeOrderModal);
+    document.getElementById('orderModal').addEventListener('click', event => {
+      if (event.target.id === 'orderModal') closeOrderModal();
+    });
 
     document.getElementById('exportBtn').addEventListener('click', () => {
       const activeSection = document.querySelector('.section.active');
