@@ -983,13 +983,14 @@
       <section id="miembros" class="section" data-title="Miembros" data-subtitle="Administra datos basicos de contacto y congregacion.">
         <div class="grid">
           <div class="panel">
-            <div class="panel-head"><h2>Nuevo miembro</h2></div>
+            <div class="panel-head"><h2 id="memberFormTitle">Nuevo miembro</h2></div>
             <form id="memberForm">
               <label>Nombre completo<input id="mName" autocomplete="name" required></label>
               <label>Telefono<input id="mTel" autocomplete="tel"></label>
               <label>Direccion<input id="mDir" autocomplete="street-address"></label>
               <label>Iglesia<select id="mI" required></select></label>
-              <button class="btn" type="submit">Registrar miembro</button>
+              <button class="btn" type="submit" id="memberSubmitBtn">Registrar miembro</button>
+              <button class="btn secondary" type="button" id="memberCancelEditBtn" hidden>Cancelar edicion</button>
             </form>
           </div>
           <div class="panel">
@@ -1314,6 +1315,7 @@
       },
       selectedOrderId: '',
       editingExpenseId: '',
+      editingMemberId: '',
       selectedGroupMembers: []
     };
 
@@ -1561,18 +1563,32 @@
     }
 
     function deleteItem(collection, id, message) {
+      const editingMember = state.editingMemberId ? db.miembros.find(item => item.id === state.editingMemberId) : null;
       db[collection] = db[collection].filter(item => item.id !== id);
       if (collection === 'gastos' && state.editingExpenseId === id) {
         resetExpenseForm();
+      }
+      if (collection === 'miembros' && state.editingMemberId === id) {
+        resetMemberForm();
       }
       if (collection === 'iglesias') {
         db.miembros = db.miembros.filter(item => item.churchId !== id);
         db.visitas = db.visitas.filter(item => item.churchId !== id);
         db.materiales = db.materiales.filter(item => item.churchId !== id);
+        db.pedidos = db.pedidos.filter(item => item.churchId !== id);
         db.grupos = db.grupos.filter(item => item.churchId !== id);
         const deletedWorks = db.obras.filter(item => item.churchId === id).map(item => item.id);
         db.obras = db.obras.filter(item => item.churchId !== id);
         db.gastos = db.gastos.filter(item => !deletedWorks.includes(item.workId));
+        if (state.filters.memberChurch === id) state.filters.memberChurch = '';
+        if (state.filters.visitChurch === id) state.filters.visitChurch = '';
+        if (state.filters.materialChurch === id) state.filters.materialChurch = '';
+        if (state.filters.workChurch === id) {
+          state.filters.workChurch = '';
+          state.filters.workId = '';
+        }
+        state.selectedGroupMembers = [];
+        if (editingMember && editingMember.churchId === id) resetMemberForm();
       }
       if (collection === 'miembros') {
         db.grupos.forEach(group => {
@@ -1674,7 +1690,7 @@
             <td>${ch.name}</td>
             <td>${ch.address || 'Sin dato'}</td>
             <td>${members}</td>
-            <td class="actions"><button class="btn danger" type="button" data-delete="iglesias" data-id="${ch.id}">Eliminar</button></td>
+            <td class="actions"><button class="btn danger" type="button" data-delete="iglesias" data-id="${ch.id}">Eliminar iglesia</button></td>
           </tr>`;
         }).join('');
       document.getElementById('tI').innerHTML = rows || emptyRow('No hay iglesias registradas.', 4);
@@ -1692,9 +1708,34 @@
           <td>${member.phone || 'Sin dato'}</td>
           <td>${member.address || 'Sin dato'}</td>
           <td>${getChurchName(member.churchId)}</td>
-          <td class="actions"><button class="btn danger" type="button" data-delete="miembros" data-id="${member.id}">Eliminar</button></td>
+          <td class="actions">
+            <button class="btn secondary" type="button" data-edit-member="${member.id}">Editar</button>
+            <button class="btn danger" type="button" data-delete="miembros" data-id="${member.id}">Eliminar</button>
+          </td>
         </tr>`).join('');
       document.getElementById('tM').innerHTML = rows || emptyRow('No hay miembros registrados.', 5);
+    }
+
+    function resetMemberForm() {
+      state.editingMemberId = '';
+      document.getElementById('memberForm').reset();
+      document.getElementById('memberFormTitle').textContent = 'Nuevo miembro';
+      document.getElementById('memberSubmitBtn').textContent = 'Registrar miembro';
+      document.getElementById('memberCancelEditBtn').hidden = true;
+    }
+
+    function loadMemberForEdit(id) {
+      const member = db.miembros.find(item => item.id === id);
+      if (!member) return;
+      state.editingMemberId = id;
+      document.getElementById('mName').value = member.name || '';
+      document.getElementById('mTel').value = member.phone || '';
+      document.getElementById('mDir').value = member.address || '';
+      document.getElementById('mI').value = member.churchId || '';
+      document.getElementById('memberFormTitle').textContent = 'Editar miembro';
+      document.getElementById('memberSubmitBtn').textContent = 'Actualizar miembro';
+      document.getElementById('memberCancelEditBtn').hidden = false;
+      document.getElementById('memberForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function renderGroups() {
@@ -2065,14 +2106,29 @@
     document.getElementById('memberForm').addEventListener('submit', event => {
       event.preventDefault();
       if (!hasChurches()) return;
-      db.miembros.push({
-        id: cryptoId('mi', db.miembros.length),
+      const memberData = {
         name: document.getElementById('mName').value.trim(),
         phone: document.getElementById('mTel').value.trim(),
         address: document.getElementById('mDir').value.trim(),
         churchId: document.getElementById('mI').value
+      };
+      if (state.editingMemberId) {
+        const member = db.miembros.find(item => item.id === state.editingMemberId);
+        if (!member) {
+          resetMemberForm();
+          toast('No se encontro el miembro para actualizar.');
+          return;
+        }
+        Object.assign(member, memberData);
+        resetMemberForm();
+        save('Miembro actualizado.');
+        return;
+      }
+      db.miembros.push({
+        id: cryptoId('mi', db.miembros.length),
+        ...memberData
       });
-      event.currentTarget.reset();
+      resetMemberForm();
       save('Miembro registrado.');
     });
 
@@ -2288,16 +2344,37 @@
         return;
       }
 
+      const editMemberBtn = event.target.closest('[data-edit-member]');
+      if (editMemberBtn) {
+        loadMemberForEdit(editMemberBtn.dataset.editMember);
+        return;
+      }
+
       const btn = event.target.closest('[data-delete]');
       if (!btn) return;
       const labels = { iglesias: 'iglesia', miembros: 'miembro', visitas: 'visita', gastos: 'gasto', materiales: 'material', grupos: 'grupo pequeno' };
-      if (confirm(`Eliminar este ${labels[btn.dataset.delete]}?`)) {
+      let confirmation = `Eliminar este ${labels[btn.dataset.delete]}?`;
+      if (btn.dataset.delete === 'iglesias') {
+        const church = db.iglesias.find(item => item.id === btn.dataset.id);
+        const works = db.obras.filter(item => item.churchId === btn.dataset.id).map(item => item.id);
+        const relatedCount =
+          db.miembros.filter(item => item.churchId === btn.dataset.id).length +
+          db.visitas.filter(item => item.churchId === btn.dataset.id).length +
+          db.materiales.filter(item => item.churchId === btn.dataset.id).length +
+          db.pedidos.filter(item => item.churchId === btn.dataset.id).length +
+          db.grupos.filter(item => item.churchId === btn.dataset.id).length +
+          works.length +
+          db.gastos.filter(item => works.includes(item.workId)).length;
+        confirmation = `Eliminar la iglesia ${church ? church.name : ''}? Tambien se eliminaran ${relatedCount} registros relacionados.`;
+      }
+      if (confirm(confirmation)) {
         deleteItem(btn.dataset.delete, btn.dataset.id, 'Registro eliminado.');
       }
     });
 
     document.getElementById('churchSearch').addEventListener('input', event => { state.filters.churches = event.target.value; renderChurches(); });
     document.getElementById('memberSearch').addEventListener('input', event => { state.filters.members = event.target.value; renderMembers(); });
+    document.getElementById('memberCancelEditBtn').addEventListener('click', resetMemberForm);
     document.getElementById('memberChurchFilter').addEventListener('change', event => { state.filters.memberChurch = event.target.value; renderMembers(); });
     document.getElementById('visitSearch').addEventListener('input', event => { state.filters.visits = event.target.value; renderVisits(); });
     document.getElementById('visitChurchFilter').addEventListener('change', event => { state.filters.visitChurch = event.target.value; renderVisits(); });
