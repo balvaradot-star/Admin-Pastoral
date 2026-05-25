@@ -1031,7 +1031,7 @@
                     <label>Monto<input type="number" id="montoG" min="0" step="0.01" required></label>
                     <label>Tipo<select id="tipoG"><option>Materiales</option><option>Mano de obra</option><option>Transporte</option><option>Permisos</option><option>Otros</option></select></label>
                   </div>
-                  <button class="btn" type="submit">Guardar gasto</button>
+                  <button class="btn" type="submit" id="expenseSubmitBtn">Guardar gasto</button>
                 </form>
               </div>
             </div>
@@ -1248,6 +1248,7 @@
         workId: ''
       },
       selectedOrderId: '',
+      editingExpenseId: '',
       selectedGroupMembers: []
     };
 
@@ -1494,6 +1495,9 @@
 
     function deleteItem(collection, id, message) {
       db[collection] = db[collection].filter(item => item.id !== id);
+      if (collection === 'gastos' && state.editingExpenseId === id) {
+        resetExpenseForm();
+      }
       if (collection === 'iglesias') {
         db.miembros = db.miembros.filter(item => item.churchId !== id);
         db.visitas = db.visitas.filter(item => item.churchId !== id);
@@ -1661,9 +1665,35 @@
           <td>${expense.type}</td>
           <td>${expense.description || 'Sin descripcion'}</td>
           <td>${money(expense.amount)}</td>
-          <td class="actions"><button class="btn danger" type="button" data-delete="gastos" data-id="${expense.id}">Eliminar gasto</button></td>
+          <td class="actions">
+            <button class="btn secondary" type="button" data-edit-expense="${expense.id}">Editar</button>
+            <button class="btn danger" type="button" data-delete="gastos" data-id="${expense.id}">Eliminar gasto</button>
+          </td>
         </tr>`).join('');
       document.getElementById('tGasto').innerHTML = rows || emptyRow('No hay gastos registrados.', 7);
+    }
+
+    function resetExpenseForm() {
+      state.editingExpenseId = '';
+      document.getElementById('expenseForm').reset();
+      document.getElementById('expenseSubmitBtn').textContent = 'Guardar gasto';
+    }
+
+    function loadExpenseForEdit(id) {
+      const expense = db.gastos.find(item => item.id === id);
+      if (!expense) return;
+      state.editingExpenseId = id;
+      state.filters.workChurch = expense.churchId || '';
+      state.filters.workId = expense.workId || '';
+      renderSelects();
+      document.getElementById('expenseWork').value = expense.workId || '';
+      document.getElementById('journalNo').value = expense.journal || '';
+      document.getElementById('expenseDate').value = expense.date || '';
+      document.getElementById('descG').value = expense.description || '';
+      document.getElementById('montoG').value = expense.amount || '';
+      document.getElementById('tipoG').value = expense.type || 'Materiales';
+      document.getElementById('expenseSubmitBtn').textContent = 'Actualizar gasto';
+      document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function renderMaterials() {
@@ -1987,8 +2017,7 @@
         toast('Primero registra o selecciona una obra.');
         return;
       }
-      db.gastos.push({
-        id: cryptoId('ga', db.gastos.length),
+      const expenseData = {
         workId: work.id,
         churchId: work.churchId,
         journal: document.getElementById('journalNo').value.trim(),
@@ -1996,8 +2025,24 @@
         description: document.getElementById('descG').value.trim(),
         amount: Number(document.getElementById('montoG').value || 0),
         type: document.getElementById('tipoG').value
+      };
+      if (state.editingExpenseId) {
+        const expense = db.gastos.find(item => item.id === state.editingExpenseId);
+        if (!expense) {
+          resetExpenseForm();
+          toast('No se encontro el gasto para actualizar.');
+          return;
+        }
+        Object.assign(expense, expenseData);
+        resetExpenseForm();
+        save('Gasto actualizado.');
+        return;
+      }
+      db.gastos.push({
+        id: cryptoId('ga', db.gastos.length),
+        ...expenseData
       });
-      event.currentTarget.reset();
+      resetExpenseForm();
       save('Gasto guardado.');
     });
 
@@ -2112,6 +2157,12 @@
         }
         material.deposit = Number(material.deposit || 0) + payment;
         save('Abono registrado.');
+        return;
+      }
+
+      const editExpenseBtn = event.target.closest('[data-edit-expense]');
+      if (editExpenseBtn) {
+        loadExpenseForEdit(editExpenseBtn.dataset.editExpense);
         return;
       }
 
