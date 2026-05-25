@@ -227,6 +227,11 @@
       margin-bottom: 18px;
     }
 
+    .expense-summary {
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      margin: 16px 0 0;
+    }
+
     .chart-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(240px, 1fr));
@@ -944,6 +949,7 @@
           <div class="panel">
             <div class="panel-head">
               <h2>Listado</h2>
+              <select id="memberChurchFilter"></select>
               <input id="memberSearch" placeholder="Buscar miembro">
             </div>
             <div class="table-wrap">
@@ -961,21 +967,25 @@
           <div class="panel">
             <div class="panel-head"><h2>Nueva visita</h2></div>
             <form id="visitForm">
-              <label>Nombre o familia<input id="vName" required></label>
+              <label>Iglesia<select id="vI" required></select></label>
+              <label>Miembro registrado<select id="vMember"></select></label>
+              <label>Nombre o familia<input id="vName" placeholder="Escribe aqui si no esta en miembros"></label>
               <label>Tipo de visita<select id="vMode"><option>Pastoral</option><option>Oracion</option><option>Seguimiento</option><option>Consejeria</option><option>WhatsApp</option><option>Llamada telefonica</option></select></label>
               <label>Fecha<input type="date" id="vDate" required></label>
-              <label>Iglesia<select id="vI" required></select></label>
+              <label>Estado<select id="vStatus"><option>Pendiente</option><option>Realizada</option><option>Reprogramada</option></select></label>
+              <label>Nueva fecha<input type="date" id="vNextDate"></label>
               <button class="btn" type="submit">Programar visita</button>
             </form>
           </div>
           <div class="panel">
             <div class="panel-head">
               <h2>Agenda</h2>
+              <select id="visitChurchFilter"></select>
               <input id="visitSearch" placeholder="Buscar visita">
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha</th><th>Iglesia</th><th>Estado</th><th class="actions">Acciones</th></tr></thead>
+                <thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha</th><th>Iglesia</th><th>Estado</th><th>Nueva fecha</th><th class="actions">Acciones</th></tr></thead>
                 <tbody id="tV"></tbody>
               </table>
             </div>
@@ -1034,6 +1044,11 @@
                   <button class="btn" type="submit" id="expenseSubmitBtn">Guardar gasto</button>
                 </form>
               </div>
+            </div>
+            <div class="metrics expense-summary">
+              <div class="metric"><span>Total mano de obra</span><strong id="laborTotal">$0</strong><small>Gastos de personal</small></div>
+              <div class="metric"><span>Total materiales</span><strong id="materialExpenseTotal">$0</strong><small>Compras de obra</small></div>
+              <div class="metric"><span>Total otros gastos</span><strong id="otherExpenseTotal">$0</strong><small>Transporte, permisos y otros</small></div>
             </div>
           </div>
 
@@ -1240,6 +1255,8 @@
         churches: '',
         members: '',
         visits: '',
+        memberChurch: '',
+        visitChurch: '',
         expenses: '',
         materials: '',
         groups: '',
@@ -1362,7 +1379,9 @@
           name: item.name || item.n || '',
           mode: item.mode || item.m || 'Pastoral',
           date: item.date || item.fecha || '',
-          churchId: resolveChurch(item.churchId || item.i)
+          churchId: resolveChurch(item.churchId || item.i),
+          status: item.status || item.estado || (item.date && new Date(`${item.date}T00:00:00`) < today ? 'Realizada' : 'Pendiente'),
+          nextDate: item.nextDate || item.nuevaFecha || ''
         })).filter(item => item.name),
         obras,
         gastos: legacyExpenses.map((item, index) => {
@@ -1542,6 +1561,10 @@
       const workFilterOptions = `<option value="">Todas las obras</option>${workOptions}`;
       document.getElementById('mI').innerHTML = options;
       document.getElementById('vI').innerHTML = options;
+      document.getElementById('memberChurchFilter').innerHTML = filterOptions;
+      document.getElementById('memberChurchFilter').value = state.filters.memberChurch;
+      document.getElementById('visitChurchFilter').innerHTML = filterOptions;
+      document.getElementById('visitChurchFilter').value = state.filters.visitChurch;
       document.getElementById('matChurch').innerHTML = options;
       document.getElementById('orderChurch').innerHTML = options;
       document.getElementById('groupChurch').innerHTML = options;
@@ -1555,6 +1578,8 @@
       document.getElementById('expenseWork').innerHTML = allWorkOptions;
       document.getElementById('mI').disabled = !db.iglesias.length;
       document.getElementById('vI').disabled = !db.iglesias.length;
+      document.getElementById('memberChurchFilter').disabled = !db.iglesias.length;
+      document.getElementById('visitChurchFilter').disabled = !db.iglesias.length;
       document.getElementById('matChurch').disabled = !db.iglesias.length;
       document.getElementById('orderChurch').disabled = !db.iglesias.length;
       document.getElementById('groupChurch').disabled = !db.iglesias.length;
@@ -1564,6 +1589,14 @@
       document.getElementById('obraFilter').disabled = !visibleWorks.length;
       document.getElementById('workChurch').disabled = !db.iglesias.length;
       document.getElementById('expenseWork').disabled = !db.obras.length;
+      renderVisitMemberOptions();
+    }
+
+    function renderVisitMemberOptions() {
+      const churchId = document.getElementById('vI').value;
+      const members = db.miembros.filter(member => member.churchId === churchId);
+      document.getElementById('vMember').innerHTML = `<option value="">Escribir manualmente</option>${members.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}`;
+      document.getElementById('vMember').disabled = !members.length;
     }
 
     function renderGroupMemberOptions() {
@@ -1601,7 +1634,11 @@
 
     function renderMembers() {
       const rows = db.miembros
-        .filter(member => includesText([member.name, member.phone, member.address, getChurchName(member.churchId)], state.filters.members))
+        .filter(member => {
+          const churchMatch = !state.filters.memberChurch || member.churchId === state.filters.memberChurch;
+          const textMatch = includesText([member.name, member.phone, member.address, getChurchName(member.churchId)], state.filters.members);
+          return churchMatch && textMatch;
+        })
         .map(member => `<tr>
           <td>${member.name}</td>
           <td>${member.phone || 'Sin dato'}</td>
@@ -1642,19 +1679,31 @@
       const rows = db.visitas
         .slice()
         .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-        .filter(visit => includesText([visit.name, visit.mode, visit.date, getChurchName(visit.churchId)], state.filters.visits))
+        .filter(visit => {
+          const churchMatch = !state.filters.visitChurch || visit.churchId === state.filters.visitChurch;
+          const textMatch = includesText([visit.name, visit.mode, visit.date, visit.status, visit.nextDate, getChurchName(visit.churchId)], state.filters.visits);
+          return churchMatch && textMatch;
+        })
         .map(visit => {
-          const isPast = visit.date && new Date(`${visit.date}T00:00:00`) < today;
+          const status = visit.status || (visit.date && new Date(`${visit.date}T00:00:00`) < today ? 'Realizada' : 'Pendiente');
+          const statusClass = status === 'Realizada' ? 'warn' : '';
           return `<tr>
             <td>${visit.name}</td>
             <td>${visit.mode}</td>
             <td>${visit.date || 'Sin fecha'}</td>
             <td>${getChurchName(visit.churchId)}</td>
-            <td><span class="status ${isPast ? 'warn' : ''}">${isPast ? 'Realizada' : 'Pendiente'}</span></td>
+            <td>
+              <select data-visit-status="${visit.id}">
+                <option ${status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                <option ${status === 'Realizada' ? 'selected' : ''}>Realizada</option>
+                <option ${status === 'Reprogramada' ? 'selected' : ''}>Reprogramada</option>
+              </select>
+            </td>
+            <td><input type="date" value="${visit.nextDate || ''}" data-visit-next="${visit.id}" ${status === 'Realizada' ? 'disabled' : ''}></td>
             <td class="actions"><button class="btn danger" type="button" data-delete="visitas" data-id="${visit.id}">Eliminar</button></td>
           </tr>`;
         }).join('');
-      document.getElementById('tV').innerHTML = rows || emptyRow('No hay visitas programadas.', 6);
+      document.getElementById('tV').innerHTML = rows || emptyRow('No hay visitas programadas.', 7);
     }
 
     function renderExpenses() {
@@ -1835,6 +1884,15 @@
       const visibleExpenses = getVisibleExpenses();
       const totalBudget = visibleWorks.reduce((sum, item) => sum + Number(item.budget || 0), 0);
       const totalG = visibleExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const laborTotal = visibleExpenses
+        .filter(item => item.type === 'Mano de obra')
+        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const materialExpenseTotal = visibleExpenses
+        .filter(item => item.type === 'Materiales')
+        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const otherExpenseTotal = visibleExpenses
+        .filter(item => item.type !== 'Mano de obra' && item.type !== 'Materiales')
+        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const saldo = totalBudget - totalG;
       const pct = totalBudget ? Math.min(999, Math.round((totalG / totalBudget) * 100)) : 0;
       const allBudget = db.obras.reduce((sum, item) => sum + Number(item.budget || 0), 0);
@@ -1863,6 +1921,9 @@
       document.getElementById('tG').textContent = money(totalG);
       document.getElementById('tS').textContent = money(saldo);
       document.getElementById('budgetPct').textContent = `${pct}%`;
+      document.getElementById('laborTotal').textContent = money(laborTotal);
+      document.getElementById('materialExpenseTotal').textContent = money(materialExpenseTotal);
+      document.getElementById('otherExpenseTotal').textContent = money(otherExpenseTotal);
       document.getElementById('saldoHint').textContent = saldo < 0 ? 'Sobrepasado' : 'Disponible';
       const selectedWork = db.obras.find(work => work.id === state.filters.workId);
       document.getElementById('budget').value = selectedWork ? selectedWork.budget || '' : '';
@@ -1971,14 +2032,24 @@
     document.getElementById('visitForm').addEventListener('submit', event => {
       event.preventDefault();
       if (!hasChurches()) return;
+      const selectedMember = db.miembros.find(item => item.id === document.getElementById('vMember').value);
+      const typedName = document.getElementById('vName').value.trim();
+      const name = selectedMember ? selectedMember.name : typedName;
+      if (!name) {
+        toast('Selecciona un miembro o escribe el nombre de la persona.');
+        return;
+      }
       db.visitas.push({
         id: cryptoId('vi', db.visitas.length),
-        name: document.getElementById('vName').value.trim(),
+        name,
         mode: document.getElementById('vMode').value,
         date: document.getElementById('vDate').value,
-        churchId: document.getElementById('vI').value
+        churchId: document.getElementById('vI').value,
+        status: document.getElementById('vStatus').value,
+        nextDate: document.getElementById('vStatus').value === 'Realizada' ? '' : document.getElementById('vNextDate').value
       });
       event.currentTarget.reset();
+      renderVisitMemberOptions();
       save('Visita programada.');
     });
 
@@ -2180,8 +2251,44 @@
 
     document.getElementById('churchSearch').addEventListener('input', event => { state.filters.churches = event.target.value; renderChurches(); });
     document.getElementById('memberSearch').addEventListener('input', event => { state.filters.members = event.target.value; renderMembers(); });
+    document.getElementById('memberChurchFilter').addEventListener('change', event => { state.filters.memberChurch = event.target.value; renderMembers(); });
     document.getElementById('visitSearch').addEventListener('input', event => { state.filters.visits = event.target.value; renderVisits(); });
-    document.getElementById('expenseSearch').addEventListener('input', event => { state.filters.expenses = event.target.value; renderExpenses(); });
+    document.getElementById('visitChurchFilter').addEventListener('change', event => { state.filters.visitChurch = event.target.value; renderVisits(); });
+    document.getElementById('vI').addEventListener('change', () => {
+      document.getElementById('vMember').value = '';
+      document.getElementById('vName').value = '';
+      renderVisitMemberOptions();
+    });
+    document.getElementById('vMember').addEventListener('change', event => {
+      const member = db.miembros.find(item => item.id === event.target.value);
+      document.getElementById('vName').value = member ? member.name : '';
+    });
+    document.getElementById('vStatus').addEventListener('change', event => {
+      const nextDateInput = document.getElementById('vNextDate');
+      if (event.target.value === 'Realizada') nextDateInput.value = '';
+      nextDateInput.disabled = event.target.value === 'Realizada';
+    });
+    document.getElementById('tV').addEventListener('change', event => {
+      const statusControl = event.target.closest('[data-visit-status]');
+      const nextDateControl = event.target.closest('[data-visit-next]');
+      const id = statusControl ? statusControl.dataset.visitStatus : (nextDateControl ? nextDateControl.dataset.visitNext : '');
+      const visit = db.visitas.find(item => item.id === id);
+      if (!visit) return;
+      if (statusControl) {
+        visit.status = statusControl.value;
+        if (visit.status === 'Realizada') visit.nextDate = '';
+      }
+      if (nextDateControl) {
+        visit.nextDate = nextDateControl.value;
+        if (visit.nextDate && visit.status !== 'Realizada') visit.status = visit.status || 'Reprogramada';
+      }
+      save('Visita actualizada.');
+    });
+    document.getElementById('expenseSearch').addEventListener('input', event => {
+      state.filters.expenses = event.target.value;
+      renderExpenses();
+      renderDashboard();
+    });
     document.getElementById('materialSearch').addEventListener('input', event => { state.filters.materials = event.target.value; renderMaterials(); });
     document.getElementById('groupSearch').addEventListener('input', event => { state.filters.groups = event.target.value; renderGroups(); });
     document.getElementById('groupChurch').addEventListener('change', () => {
