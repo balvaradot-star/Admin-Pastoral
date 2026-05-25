@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion Pastoral Pro</title>
+  <title>Control Pastoral</title>
   <style>
     :root {
       color-scheme: light;
@@ -813,9 +813,9 @@
   <section class="login-screen" id="loginScreen">
     <div class="login-card">
       <div class="login-brand">
-        <div class="brand-mark">PC</div>
+        <div class="brand-mark">CP</div>
         <div>
-          <strong>Pastoral Central</strong>
+          <strong>Control Pastoral</strong>
           <span>Ingresa tus credenciales para continuar</span>
         </div>
       </div>
@@ -839,9 +839,9 @@
   <div class="app locked" id="appShell">
     <aside>
       <div class="brand">
-        <div class="brand-mark">PC</div>
+        <div class="brand-mark">CP</div>
         <div>
-          <strong>Pastoral Central</strong>
+          <strong>Control Pastoral</strong>
           <span>Gestion comunitaria</span>
         </div>
       </div>
@@ -1538,6 +1538,7 @@
         state.filters.workId = '';
       }
       const workOptions = visibleWorks.map(work => `<option value="${work.id}">${work.name}</option>`).join('');
+      const allWorkOptions = db.obras.map(work => `<option value="${work.id}">${work.name} - ${getChurchName(work.churchId)}</option>`).join('');
       const workFilterOptions = `<option value="">Todas las obras</option>${workOptions}`;
       document.getElementById('mI').innerHTML = options;
       document.getElementById('vI').innerHTML = options;
@@ -1551,7 +1552,7 @@
       document.getElementById('obraFilter').innerHTML = workFilterOptions;
       document.getElementById('obraFilter').value = state.filters.workId;
       document.getElementById('workChurch').innerHTML = options;
-      document.getElementById('expenseWork').innerHTML = workOptions;
+      document.getElementById('expenseWork').innerHTML = allWorkOptions;
       document.getElementById('mI').disabled = !db.iglesias.length;
       document.getElementById('vI').disabled = !db.iglesias.length;
       document.getElementById('matChurch').disabled = !db.iglesias.length;
@@ -1562,7 +1563,7 @@
       document.getElementById('obraChurchFilter').disabled = !db.iglesias.length;
       document.getElementById('obraFilter').disabled = !visibleWorks.length;
       document.getElementById('workChurch').disabled = !db.iglesias.length;
-      document.getElementById('expenseWork').disabled = !visibleWorks.length;
+      document.getElementById('expenseWork').disabled = !db.obras.length;
     }
 
     function renderGroupMemberOptions() {
@@ -1799,6 +1800,10 @@
       return (order.items || []).reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.price || 0), 0);
     }
 
+    function requestedOrderItems(items) {
+      return (items || []).filter(item => Number(item.qty || 0) > 0);
+    }
+
     function showOrderModal(orderId) {
       const order = db.pedidos.find(item => item.id === orderId);
       if (!order) {
@@ -1814,8 +1819,7 @@
         <div class="metric"><span>Pastor</span><strong>${order.pastor || 'Sin dato'}</strong><small>${order.phone || 'Sin telefono'}</small></div>
         <div class="metric"><span>Asociacion</span><strong>${order.association || 'Sin dato'}</strong><small>${order.district || 'Sin distrito'}</small></div>
       `;
-      document.getElementById('orderModalRows').innerHTML = (order.items || [])
-        .filter(item => item.qty || item.price)
+      document.getElementById('orderModalRows').innerHTML = requestedOrderItems(order.items)
         .map(item => `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(Number(item.qty || 0) * Number(item.price || 0))}</td></tr>`)
         .join('') || emptyRow('Sin materiales solicitados.', 4);
       document.getElementById('orderModal').classList.add('show');
@@ -1904,7 +1908,7 @@
       if (validCredentials(user, pass)) {
         event.currentTarget.reset();
         setAuthenticated(true);
-        toast('Bienvenido a Pastoral Central.');
+        toast('Bienvenido a Control Pastoral.');
         return;
       }
 
@@ -2360,9 +2364,8 @@
       const phone = orderOverride ? orderOverride.phone : document.getElementById('orderPhone').value.trim();
       const association = orderOverride ? orderOverride.association : document.getElementById('orderAssociation').value.trim();
       const district = orderOverride ? orderOverride.district : document.getElementById('orderDistrict').value.trim();
-      const items = orderOverride ? orderOverride.items : getOrderFormItems();
+      const items = requestedOrderItems(orderOverride ? orderOverride.items : getOrderFormItems());
       const rows = items
-        .filter(item => item.qty || item.price)
         .map(item => `<tr><td>${item.name}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(item.qty * item.price)}</td></tr>`)
         .join('');
       const total = items.reduce((sum, item) => sum + item.qty * item.price, 0);
