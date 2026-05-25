@@ -305,6 +305,45 @@
       align-items: start;
     }
 
+    .visit-layout {
+      display: grid;
+      gap: 16px;
+    }
+
+    .visit-form-grid {
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      align-items: end;
+    }
+
+    .visit-form-grid .wide {
+      grid-column: span 2;
+    }
+
+    .visit-form-grid .visit-submit {
+      align-self: end;
+      min-height: 42px;
+    }
+
+    .agenda-head {
+      align-items: center;
+    }
+
+    .agenda-filters {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(220px, 360px) minmax(240px, 1fr);
+      gap: 12px;
+    }
+
+    .visit-table {
+      min-width: 920px;
+    }
+
+    .visit-table select,
+    .visit-table input[type="date"] {
+      min-width: 150px;
+    }
+
     .work-layout {
       display: grid;
       gap: 16px;
@@ -624,6 +663,8 @@
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .chart-grid { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
+      .visit-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .visit-form-grid .wide { grid-column: span 2; }
       .work-controls { grid-template-columns: 1fr; }
     }
 
@@ -707,6 +748,9 @@
         flex-direction: column;
         gap: 10px;
       }
+      .agenda-filters {
+        grid-template-columns: 1fr;
+      }
       .modal { padding: 12px; }
       .modal-head {
         flex-direction: column;
@@ -753,6 +797,8 @@
     @media (max-width: 560px) {
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .row { grid-template-columns: 1fr; }
+      .visit-form-grid { grid-template-columns: 1fr; }
+      .visit-form-grid .wide { grid-column: auto; }
       h1 { font-size: 21px; }
       .metric strong { font-size: clamp(18px, 7vw, 23px); }
       .table-wrap {
@@ -963,28 +1009,30 @@
       </section>
 
       <section id="visitas" class="section" data-title="Visitas" data-subtitle="Programa acompanamiento pastoral y revisa proximas visitas.">
-        <div class="grid">
-          <div class="panel">
+        <div class="visit-layout">
+          <div class="panel visit-form-panel">
             <div class="panel-head"><h2>Nueva visita</h2></div>
-            <form id="visitForm">
+            <form id="visitForm" class="visit-form-grid">
               <label>Iglesia<select id="vI" required></select></label>
               <label>Miembro registrado<select id="vMember"></select></label>
-              <label>Nombre o familia<input id="vName" placeholder="Escribe aqui si no esta en miembros"></label>
+              <label class="wide">Nombre o familia<input id="vName" placeholder="Escribe aqui si no esta en miembros"></label>
               <label>Tipo de visita<select id="vMode"><option>Pastoral</option><option>Oracion</option><option>Seguimiento</option><option>Consejeria</option><option>WhatsApp</option><option>Llamada telefonica</option></select></label>
               <label>Fecha<input type="date" id="vDate" required></label>
               <label>Estado<select id="vStatus"><option>Pendiente</option><option>Realizada</option><option>Reprogramada</option></select></label>
               <label>Nueva fecha<input type="date" id="vNextDate"></label>
-              <button class="btn" type="submit">Programar visita</button>
+              <button class="btn visit-submit" type="submit">Programar visita</button>
             </form>
           </div>
-          <div class="panel">
-            <div class="panel-head">
+          <div class="panel agenda-panel">
+            <div class="panel-head agenda-head">
               <h2>Agenda</h2>
-              <select id="visitChurchFilter"></select>
-              <input id="visitSearch" placeholder="Buscar visita">
+              <div class="agenda-filters">
+                <select id="visitChurchFilter"></select>
+                <input id="visitSearch" placeholder="Buscar visita">
+              </div>
             </div>
             <div class="table-wrap">
-              <table>
+              <table class="visit-table">
                 <thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha</th><th>Iglesia</th><th>Estado</th><th>Nueva fecha</th><th class="actions">Acciones</th></tr></thead>
                 <tbody id="tV"></tbody>
               </table>
@@ -1686,7 +1734,6 @@
         })
         .map(visit => {
           const status = visit.status || (visit.date && new Date(`${visit.date}T00:00:00`) < today ? 'Realizada' : 'Pendiente');
-          const statusClass = status === 'Realizada' ? 'warn' : '';
           return `<tr>
             <td>${visit.name}</td>
             <td>${visit.mode}</td>
