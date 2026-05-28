@@ -483,6 +483,23 @@
       gap: 10px;
     }
 
+    input[type="date"] {
+      min-width: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      line-height: 42px;
+      overflow: visible;
+    }
+
+    input[type="date"]::-webkit-date-and-time-value {
+      min-height: 1.5em;
+      text-align: left;
+    }
+
+    .baptism-row {
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
+    }
+
     .btn {
       min-height: 40px;
       border: 1px solid transparent;
@@ -663,6 +680,7 @@
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .chart-grid { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
+      .baptism-row { grid-template-columns: 1fr; }
       .visit-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .visit-form-grid .wide { grid-column: span 2; }
       .work-controls { grid-template-columns: 1fr; }
@@ -765,6 +783,9 @@
       .btn {
         min-height: 38px;
         font-size: 14px;
+      }
+      input[type="date"] {
+        line-height: 38px;
       }
       label { font-size: 12px; }
       .control-block {
@@ -1063,7 +1084,7 @@
           <div class="panel">
             <div class="panel-head"><h2>Nuevo bautismo</h2></div>
             <form id="baptismForm">
-              <div class="row">
+              <div class="row baptism-row">
                 <label>Iglesia<select id="baptismChurch" required></select></label>
                 <label>Fecha<input type="date" id="baptismDate" required></label>
               </div>
